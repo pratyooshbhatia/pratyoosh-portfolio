@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pratyoosh Bhatia — Product Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000000;
+    --bg2: #060606;
+    --bg3: #0d0d0d;
+    --text: #f5f1ea;
+    --text-dim: #6b635c;
+    --text-mid: #a39990;
+    --accent: #ff8a3d;
+    --accent2: #ffd166;
+    --accent3: #e63946;
+    --border: #1a1816;
+    --border2: #28241f;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    cursor: none;
+    overflow-x: hidden;
+  }
+
+  /* Custom Cursor */
+  #cursor {
+    position: fixed;
+    width: 10px; height: 10px;
+    background: var(--accent);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, width 0.3s, height 0.3s, opacity 0.3s;
+    mix-blend-mode: difference;
+  }
+  #cursor-ring {
+    position: fixed;
+    width: 36px; height: 36px;
+    border: 1px solid rgba(255,138,61,0.4);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.12s ease-out, width 0.3s, height 0.3s, border-color 0.3s;
+  }
+  body:hover #cursor { opacity: 1; }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 28px 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.4s, backdrop-filter 0.4s, background 0.4s;
+  }
+  nav.scrolled {
+    border-color: var(--border);
+    backdrop-filter: blur(20px);
+    background: rgba(7,7,7,0.8);
+  }
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .nav-links {
+    display: flex;
+    gap: 40px;
+    list-style: none;
+  }
+  .nav-links a {
+    color: var(--text-mid);
+    text-decoration: none;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+
+  /* HERO */
+  #hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  #hero::before {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    right: -20%;
+    width: 90%;
+    height: 90%;
+    background: radial-gradient(circle, rgba(255,138,61,0.35) 0%, rgba(230,57,70,0.2) 30%, rgba(255,209,102,0.15) 50%, transparent 70%);
+    filter: blur(80px);
+    z-index: 0;
+    pointer-events: none;
+    animation: float 20s ease-in-out infinite;
+  }
+  #hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 80px 80px;
+    z-index: 0;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse at bottom right, black 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at bottom right, black 30%, transparent 75%);
+  }
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-5%, -5%) scale(1.1); }
+  }
+  #hero > * { position: relative; z-index: 1; }
+
+  .hero-grid-line {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+  .hero-grid-line:nth-child(1) { left: 33.33%; }
+  .hero-grid-line:nth-child(2) { left: 66.66%; }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .hero-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(72px, 10vw, 140px);
+    font-weight: 300;
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    margin-bottom: 48px;
+  }
+  .hero-name em {
+    font-style: italic;
+    background: linear-gradient(120deg, var(--accent3) 0%, var(--accent) 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-top: 1px solid var(--border);
+    padding-top: 32px;
+  }
+  .hero-tagline {
+    font-size: clamp(14px, 1.4vw, 18px);
+    color: var(--text-mid);
+    max-width: 380px;
+    line-height: 1.6;
+    font-weight: 400;
+  }
+  .hero-tagline strong { color: var(--text); font-weight: 600; }
+
+  .hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid var(--border2);
+    padding: 16px 28px;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .hero-cta:hover {
+    border-color: var(--accent);
+    background: rgba(255,138,61,0.06);
+  }
+  .hero-cta span { font-size: 18px; transition: transform 0.3s; }
+  .hero-cta:hover span { transform: translateX(4px); }
+
+  /* STATS TICKER */
+  .stats-bar {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+  }
+  .stats-track {
+    display: flex;
+    animation: ticker 22s linear infinite;
+    white-space: nowrap;
+  }
+  .stats-track:hover { animation-play-state: paused; }
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 22px 48px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+  }
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+  .stat-sep {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--border2);
+    flex-shrink: 0;
+  }
+
+  /* SECTIONS COMMON */
+  section {
+    padding: 120px 60px;
+    border-top: 1px solid var(--border);
+  }
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 64px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* FEATURED PROJECT */
+  #project .project-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    margin-bottom: 80px;
+  }
+  .project-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(52px, 7vw, 96px);
+    font-weight: 300;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+  }
+  .project-title em {
+    font-style: italic;
+    background: linear-gradient(120deg, var(--accent3) 0%, var(--accent) 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: block;
+  }
+  .project-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 32px;
+  }
+  .project-desc {
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--text-mid);
+    font-weight: 400;
+  }
+  .project-desc strong { color: var(--text); }
+  .project-meta {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .meta-tag {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    border: 1px solid var(--border2);
+    padding: 8px 16px;
+  }
+  .meta-tag.accent {
+    color: var(--accent);
+    border-color: rgba(255,138,61,0.3);
+    background: rgba(255,138,61,0.05);
+  }
+
+  /* Project Numbers Grid */
+  .project-numbers {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 80px;
+  }
+  .number-box {
+    background: var(--bg);
+    padding: 48px 40px;
+    transition: background 0.3s;
+  }
+  .number-box:hover { background: var(--bg2); }
+  .number-big {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(48px, 5vw, 72px);
+    font-weight: 600;
+    color: var(--accent2);
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .number-desc {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* Project Story */
+  .project-story {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 80px;
+    padding-top: 60px;
+    border-top: 1px solid var(--border);
+  }
+  .story-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 300;
+    line-height: 1.2;
+    font-style: italic;
+    color: var(--text-mid);
+  }
+  .story-body {
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--text-mid);
+  }
+  .story-body strong { color: var(--text); font-weight: 600; }
+  .story-body p + p { margin-top: 20px; }
+
+  .project-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 40px;
+    border-bottom: 1px solid rgba(255,138,61,0.3);
+    padding-bottom: 4px;
+    transition: border-color 0.3s, gap 0.3s;
+  }
+  .project-link:hover { gap: 16px; border-color: var(--accent); }
+
+  /* ORIGIN STORY TIMELINE */
+  #story .timeline {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+  .timeline-item {
+    background: var(--bg);
+    padding: 60px 48px;
+    position: relative;
+    transition: background 0.4s;
+  }
+  .timeline-item:hover { background: var(--bg2); }
+  .timeline-year {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .timeline-year::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border2);
+  }
+  .timeline-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 400;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .timeline-title em {
+    font-style: italic;
+    background: linear-gradient(120deg, var(--accent3) 0%, var(--accent) 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .timeline-text {
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text-dim);
+  }
+  .timeline-text strong { color: var(--text-mid); }
+  .timeline-arrow {
+    position: absolute;
+    top: 60px; right: -13px;
+    width: 24px; height: 24px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--accent);
+    z-index: 2;
+  }
+  .timeline-item:last-child .timeline-arrow { display: none; }
+
+  /* BUILDING NEXT */
+  #next .next-featured {
+    border: 1px solid var(--border);
+    padding: 64px;
+    margin-bottom: 80px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(230,57,70,0.08) 0%, rgba(255,138,61,0.05) 40%, transparent 70%);
+  }
+  #next .next-featured::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: linear-gradient(180deg, var(--accent3) 0%, var(--accent) 50%, var(--accent2) 100%);
+  }
+  #next .next-featured::after {
+    content: 'CONFIDENTIAL';
+    position: absolute;
+    top: 24px;
+    right: 32px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--text-dim);
+    opacity: 0.5;
+  }
+  .next-featured-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(36px, 4.5vw, 56px);
+    font-weight: 300;
+    line-height: 1.05;
+    margin-top: 28px;
+  }
+  .next-featured-title em {
+    font-style: italic;
+    background: linear-gradient(120deg, var(--accent3) 0%, var(--accent) 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .next-featured-text {
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--text-mid);
+  }
+  .next-featured-text strong { color: var(--text); font-weight: 600; }
+  .next-featured-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .next-subtitle {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .next-subtitle::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  #next .next-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .next-card {
+    border: 1px solid var(--border);
+    padding: 48px 40px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.4s;
+  }
+  .next-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(255,138,61,0.08) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .next-card:hover { border-color: rgba(255,138,61,0.3); }
+  .next-card:hover::before { opacity: 1; }
+  .next-status {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .next-status::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+  .next-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 20px;
+  }
+  .next-text {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-dim);
+  }
+  .next-platforms {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
+  .platform-tag {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    border: 1px solid var(--border2);
+    padding: 5px 12px;
+  }
+
+  /* ABOUT */
+  #about .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 120px;
+    align-items: start;
+  }
+  .about-left {}
+  .about-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(40px, 5vw, 64px);
+    font-weight: 300;
+    line-height: 1.05;
+    margin-bottom: 40px;
+  }
+  .about-heading em {
+    font-style: italic;
+    background: linear-gradient(120deg, var(--accent3) 0%, var(--accent) 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .about-values {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .value-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .value-item::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+  .about-text {
+    font-size: 17px;
+    line-height: 1.85;
+    color: var(--text-mid);
+  }
+  .about-text p + p { margin-top: 24px; }
+  .about-text strong { color: var(--text); font-weight: 600; }
+  .about-text em {
+    font-style: italic;
+    background: linear-gradient(120deg, var(--accent3) 0%, var(--accent) 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* CONTACT */
+  #contact {
+    background: var(--bg);
+    text-align: center;
+    padding: 140px 60px 120px;
+    position: relative;
+    overflow: hidden;
+  }
+  #contact::before {
+    content: '';
+    position: absolute;
+    bottom: -40%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120%;
+    height: 110%;
+    background: radial-gradient(ellipse at center, rgba(255,209,102,0.25) 0%, rgba(255,138,61,0.3) 25%, rgba(230,57,70,0.25) 50%, transparent 75%);
+    filter: blur(60px);
+    z-index: 0;
+    pointer-events: none;
+  }
+  #contact::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    z-index: 0;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse at center bottom, black 20%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse at center bottom, black 20%, transparent 70%);
+  }
+  #contact > * { position: relative; z-index: 1; }
+  .contact-label {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+  .contact-label::before, .contact-label::after {
+    content: '';
+    width: 40px; height: 1px;
+    background: var(--border2);
+  }
+  .contact-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(48px, 7vw, 96px);
+    font-weight: 300;
+    line-height: 0.95;
+    margin-bottom: 64px;
+  }
+  .contact-heading em {
+    font-style: italic;
+    background: linear-gradient(120deg, var(--accent3) 0%, var(--accent) 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .contact-links {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .contact-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid var(--border2);
+    padding: 18px 36px;
+    transition: border-color 0.3s, background 0.3s, color 0.3s;
+  }
+  .contact-link:hover {
+    border-color: var(--accent);
+    background: rgba(255,138,61,0.08);
+    color: var(--accent);
+  }
+  .contact-link.primary {
+    background: linear-gradient(120deg, var(--accent3) 0%, var(--accent) 60%, var(--accent2) 100%);
+    color: var(--bg);
+    border-color: transparent;
+    font-weight: 600;
+  }
+  .contact-link.primary:hover {
+    background: linear-gradient(120deg, var(--accent2) 0%, var(--accent) 60%, var(--accent3) 100%);
+    border-color: transparent;
+    color: var(--bg);
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-copy {
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+  }
+  .footer-badge {
+    font-size: 11px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.08em;
+  }
+  .footer-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  /* SCROLL REVEAL */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1);
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    nav { padding: 24px 24px; }
+    .nav-links { display: none; }
+    #hero { padding: 0 24px 60px; }
+    section { padding: 80px 24px; }
+    #project .project-header { grid-template-columns: 1fr; gap: 40px; }
+    .project-numbers { grid-template-columns: repeat(2, 1fr); }
+    .project-story { grid-template-columns: 1fr; gap: 40px; }
+    #story .timeline { grid-template-columns: 1fr; }
+    .timeline-arrow { display: none !important; }
+    #next .next-grid { grid-template-columns: 1fr; }
+    #next .next-featured { grid-template-columns: 1fr; padding: 40px 28px; gap: 32px; }
+    #next .next-featured::after { top: 16px; right: 20px; }
+    #about .about-grid { grid-template-columns: 1fr; gap: 60px; }
+    footer { flex-direction: column; gap: 16px; text-align: center; }
+    #contact { padding: 80px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#hero" class="nav-logo">Pratyoosh Bhatia</a>
+  <ul class="nav-links">
+    <li><a href="#project">Work</a></li>
+    <li><a href="#story">Story</a></li>
+    <li><a href="#next">Next</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-grid-line"></div>
+  <div class="hero-grid-line"></div>
+
+  <div class="hero-eyebrow reveal">Bengaluru, India · Product Builder · Founder</div>
+
+  <div class="hero-name reveal reveal-delay-1">
+    I build<br>
+    products<br>
+    <em>people pay for.</em>
+  </div>
+
+  <div class="hero-bottom reveal reveal-delay-2">
+    <p class="hero-tagline">
+      <strong>Sharp UX. Real market fit. Actual revenue.</strong><br>
+      I start with problems I've lived, then obsess over every detail until it works.
+    </p>
+    <a href="#project" class="hero-cta">See my work <span>→</span></a>
+  </div>
+</section>
+
+<!-- FEATURED PROJECT -->
+<section id="project">
+  <div class="section-label reveal">Featured Project</div>
+
+  <div class="project-header">
+    <div>
+      <div class="project-title reveal">
+        PWA<br>for <em>Wix</em>
+      </div>
+    </div>
+    <div class="project-right reveal reveal-delay-1">
+      <p class="project-desc">
+        <strong>Wix had 200 million+ users. None of them could turn their site into a PWA.</strong>
+        After 5 years on the platform, I got tired of waiting. I figured it out, built it into a product, and listed it on the Wix App Market.
+        It now earns real revenue from business owners across 13 countries — at margins that most SaaS founders only dream of.
+      </p>
+      <div class="project-meta">
+        <span class="meta-tag accent">Sep 2024 – Present</span>
+        <span class="meta-tag">Wix App Market</span>
+        <span class="meta-tag">Self-funded</span>
+        <span class="meta-tag">Solo founder</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Numbers -->
+  <div class="project-numbers reveal">
+    <div class="number-box">
+      <div class="number-big">13</div>
+      <div class="number-desc">Countries with<br>paying users</div>
+    </div>
+    <div class="number-box">
+      <div class="number-big">₹30K</div>
+      <div class="number-desc">Monthly recurring<br>revenue</div>
+    </div>
+    <div class="number-box">
+      <div class="number-big">95%+</div>
+      <div class="number-desc">Profit margins —<br>near-pure profit</div>
+    </div>
+    <div class="number-box">
+      <div class="number-big">66</div>
+      <div class="number-desc">Countries reached<br>across the globe</div>
+    </div>
+  </div>
+
+  <!-- Story of the project -->
+  <div class="project-story">
+    <div class="story-heading reveal">Why it<br>exists at all.</div>
+    <div class="reveal reveal-delay-1">
+      <div class="story-body">
+        <p>
+          A Progressive Web App (PWA) lets any website be installed on a phone like a native app — offline support, push notifications, home screen icon. It's a feature users love and businesses need. Platforms like WordPress had it. <strong>Wix didn't.</strong>
+        </p>
+        <p>
+          I'd been building on Wix for 5 years when I first hit this wall while working on Syllabuzz, my previous project. I asked for it. The community asked for it. <strong>Nothing happened.</strong> So I spent 1–2 years in the background, figuring out how to make it work — while simultaneously prepping for JEE.
+        </p>
+        <p>
+          The day I got it working was the day PWA for Wix was born. <strong>It's been live since September 2024</strong> and hasn't stopped growing.
+        </p>
+      </div>
+      <a href="https://www.wix.com/app-market" target="_blank" class="project-link">View on Wix App Market →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ORIGIN STORY TIMELINE -->
+<section id="story">
+  <div class="section-label reveal">The Story Behind It</div>
+
+  <div class="timeline">
+    <div class="timeline-item reveal">
+      <div class="timeline-year">2017 — 2021</div>
+      <div class="timeline-title">YouTube &<br><em>First Revenue</em></div>
+      <div class="timeline-text">
+        Started two YouTube channels at <strong>age 13</strong> with zero tech knowledge — didn't know the difference between Google and Chrome. Taught myself video editing, SEO, and affiliate marketing from scratch.
+        <br><br>
+        In 2020, a CBSE syllabus video hit <strong>50,000+ views</strong> and went viral among students — downloaded, forwarded, shared widely. The download page had affiliate links. That was my <strong>first rupee earned online.</strong>
+        <br><br>
+        The channel also led me to Wix — I was trying to build a website for it.
+      </div>
+      <div class="timeline-arrow">→</div>
+    </div>
+
+    <div class="timeline-item reveal reveal-delay-1">
+      <div class="timeline-year">2022 — 2024</div>
+      <div class="timeline-title">Syllabuzz &<br><em>The Gap</em></div>
+      <div class="timeline-text">
+        The viral syllabus video became a product idea. I built <strong>syllabuzz.in</strong> on Wix — a structured syllabus platform for students. Spent 3 years building, iterating, and mostly failing to monetise it.
+        <br><br>
+        It still earns <strong>₹3–5K/year passively</strong>. The revenue wasn't the lesson — the experience was. Three years of building on Wix taught me the platform deeply.
+        <br><br>
+        It also showed me what was missing: <strong>Wix had no PWA support.</strong> That gap became everything.
+      </div>
+      <div class="timeline-arrow">→</div>
+    </div>
+
+    <div class="timeline-item reveal reveal-delay-2">
+      <div class="timeline-year">2024 — Present</div>
+      <div class="timeline-title">PWA for Wix &<br><em>Real Traction</em></div>
+      <div class="timeline-text">
+        Took the gap I found building Syllabuzz, spent 1–2 years figuring out the technical solution, and shipped it while prepping for JEE.
+        <br><br>
+        <strong>Live since September 2024.</strong> Used by business owners in 13 countries. ₹30K MRR. 95%+ margins. No funding, no team, no shortcuts.
+        <br><br>
+        Every lesson from YouTube, every failure from Syllabuzz, every hour on the Wix platform — <strong>it all led here.</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BUILDING NEXT -->
+<section id="next">
+  <div class="section-label reveal">Building Next</div>
+
+  <div class="next-featured reveal">
+    <div class="next-featured-left">
+      <div class="next-status">Stealth · Main focus</div>
+      <div class="next-featured-title">
+        AI-first products.<br>
+        <em>Can't say more yet.</em>
+      </div>
+    </div>
+    <div class="next-featured-right">
+      <p class="next-featured-text">
+        My biggest bets sit here — <strong>AI-native products</strong> I'm exploring quietly. Trying multiple ideas, seeing what sticks. If one breaks through, that's where I go all in.
+      </p>
+      <p class="next-featured-text" style="color: var(--text-dim); margin-top: 16px;">
+        Details when there's something to show. Not before.
+      </p>
+    </div>
+  </div>
+
+  <div class="next-subtitle reveal">Smaller bets in parallel</div>
+
+  <div class="next-grid">
+    <div class="next-card reveal">
+      <div class="next-status">In progress</div>
+      <div class="next-title">Push Notifications<br>for Wix</div>
+      <div class="next-text">
+        Push notifications have never existed natively on Wix. I've figured out the technical path to make it happen. Another gap, another product.
+      </div>
+      <div class="next-platforms">
+        <span class="platform-tag">Wix</span>
+        <span class="platform-tag">Web Push API</span>
+      </div>
+    </div>
+
+    <div class="next-card reveal reveal-delay-1">
+      <div class="next-status">In progress</div>
+      <div class="next-title">Distraction-Free<br>Phone Apps</div>
+      <div class="next-text">
+        Chrome extensions exist. Nothing good exists for phones. Building distraction-free versions of YouTube, Instagram and more for Android and iOS.
+      </div>
+      <div class="next-platforms">
+        <span class="platform-tag">Android</span>
+        <span class="platform-tag">iOS</span>
+        <span class="platform-tag">App Store</span>
+      </div>
+    </div>
+
+    <div class="next-card reveal reveal-delay-2">
+      <div class="next-status">Expanding</div>
+      <div class="next-title">Plugins Beyond<br>Wix</div>
+      <div class="next-text">
+        Taking what works on Wix and bringing it to where the rest of the market is. PWA and more — available for Shopify and Squarespace merchants.
+      </div>
+      <div class="next-platforms">
+        <span class="platform-tag">Shopify</span>
+        <span class="platform-tag">Squarespace</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-label reveal">About</div>
+
+  <div class="about-grid">
+    <div class="about-left">
+      <div class="about-heading reveal">
+        Builder.<br>
+        Not a<br>
+        <em>talker.</em>
+      </div>
+      <div class="about-values reveal reveal-delay-1">
+        <div class="value-item">Animal Welfare</div>
+        <div class="value-item">Ethical Tech</div>
+        <div class="value-item">First-Principles Thinking</div>
+        <div class="value-item">Inspired by Apple & Steve Jobs</div>
+      </div>
+    </div>
+
+    <div class="about-text reveal reveal-delay-1">
+      <p>
+        I build at the intersection of <strong>AI, UX, and systems thinking</strong> — mostly on the web. I start with problems I understand deeply (ideally ones I've lived), validate them through research and user conversations, and then build fast to test assumptions.
+      </p>
+      <p>
+        As clarity increases, I shift gears: <em>simplicity, performance, and obsessive attention to detail.</em> Inspired by Apple and Steve Jobs — I believe the best products feel inevitable once you use them.
+      </p>
+      <p>
+        Most of my learning came from failure. Multiple products, most of which didn't work. Those failures shaped how I understand users, value, and what actually moves people to pay.
+      </p>
+      <p>
+        <strong>I design for ethical engagement.</strong> I won't build systems that exploit users, regardless of financial upside. Once I decide a problem is worth solving — I go all in.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-label">Let's talk</div>
+  <div class="contact-heading reveal">
+    Got something<br>
+    <em>worth building?</em>
+  </div>
+  <div class="contact-links reveal reveal-delay-1">
+    <a href="https://www.linkedin.com/in/pratyooshbhatia" target="_blank" class="contact-link primary">LinkedIn →</a>
+    <a href="mailto:pratyoosh@example.com" class="contact-link">Send an email →</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-copy">© Pratyoosh Bhatia 2025 · All Rights Reserved</span>
+  <span class="footer-badge">Available for select projects</span>
+</footer>
+
+<script>
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+  });
+
+  function animateRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.width = '6px';
+      cursor.style.height = '6px';
+      ring.style.width = '56px';
+      ring.style.height = '56px';
+      ring.style.borderColor = 'rgba(255,138,61,0.8)';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.width = '10px';
+      cursor.style.height = '10px';
+      ring.style.width = '36px';
+      ring.style.height = '36px';
+      ring.style.borderColor = 'rgba(255,138,61,0.4)';
+    });
+  });
+
+  // Nav scroll effect
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
